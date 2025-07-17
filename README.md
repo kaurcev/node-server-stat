@@ -74,6 +74,9 @@ http://localhost:7787
 node-server-stat
 ├── imgs/              # Статические для README.md
 ├── public/            # Статические файлы
+│   ├── app.js         # Инциализатор воркера
+│   ├── code.js        # JavaScript код самого дашборда
+│   ├── style.css      # Стили дашборда
 │   └── index.html     # HTML-файл дашборда
 ├── .env.template      # Шаблон переменных окружения
 ├── index.js           # Основной серверный код
