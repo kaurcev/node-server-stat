@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашбоард</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4e73df;
+            --primary-light: #6f8efc;
+            --secondary: #858796;
+            --success: #1cc88a;
+            --light-bg: #f2f4f8;
+            --card-bg: #ffffff;
+            --text: #5a5c69;
+            --text-light: #858796;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text);
+            padding: 15px;
+            min-height: 100vh;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-right: 15px;
+        }
+        
+        .status-bar {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success);
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.03);
+            padding: 15px;
+            transition: transform 0.3s ease;
+        }
+                
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        
+        .card-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 7px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .card-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+        
+        .card-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+        
+        .chart-card {
+            grid-column: span 2;
+            height: 250px;
+        }
+        
+        .chart-header {
+            margin-bottom: 12px;
+        }
+        
+        .chart-container {
+            height: calc(100% - 35px);
+            position: relative;
+        }
+        
+        .processes-card {
+            grid-column: span 4;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(78, 115, 223, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-value {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-card {
+                grid-column: span 1;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            
+            .chart-card {
+                grid-column: span 2;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            .card-value {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 768px) and (orientation: landscape) {
+            .grid-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .chart-card {
+                grid-column: span 1;
+                height: 220px;
+            }
+            
+            .processes-card {
+                grid-column: span 2;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .status-bar {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            
+            .grid-container {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .chart-card,
+            .processes-card {
+                grid-column: span 1;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .status-bar {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .card-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+            }
+            
+            .card-value {
+                font-size: 1.4rem;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .card-value {
+                font-size: 1.3rem;
+            }
+            
+            .card-title {
+                font-size: 0.85rem;
+            }
+            
+            .card-label {
+                font-size: 0.75rem;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+            }
+            
+            table {
+                font-size: 0.8rem;
+            }
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Дашбоард</h1>
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator"></div>
+                <span>Работает</span>
+            </div>
+            <div class="status-item">
+                <span id="lastUpdate">Обновление...</span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="grid-container">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Использование процессора</div>
+                <div class="card-icon">%</div>
+            </div>
+            <div class="card-value" id="cpuValue">0%</div>
+            <div class="card-label">Текущее использование</div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Память (RAM)</div>
+                <div class="card-icon">M</div>
+            </div>
+            <div class="card-value" id="memoryValue">0%</div>
+            <div class="card-label" id="memoryLabel">0 MB / 0 MB</div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Загрузка</div>
+                <div class="card-icon">↓</div>
+            </div>
+            <div class="card-value" id="downloadValue">0 KB/s</div>
+            <div class="card-label">Текущая скорость</div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Отправка</div>
+                <div class="card-icon">↑</div>
+            </div>
+            <div class="card-value" id="uploadValue">0 KB/s</div>
+            <div class="card-label">Текущая скорость</div>
+        </div>
+        
+        <div class="card chart-card">
+            <div class="chart-header">
+                <div class="card-title">График работы процессора (%)</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="cpuChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card chart-card">
+            <div class="chart-header">
+                <div class="card-title">График использованя памяти (RAM) (%)</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="memoryChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card chart-card">
+            <div class="chart-header">
+                <div class="card-title">Скорость интернет-соединения (KB/s)</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="networkChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card chart-card">
+            <div class="chart-header">
+                <div class="card-title">Распределение нагрузки на систему</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="loadChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card processes-card">
+            <div class="chart-header">
+                <div class="card-title">Главные процессы</div>
+            </div>
+            <div class="chart-container">
+                <div class="table-container">
+                    <table id="processTable">
+                        <thead>
+                            <tr>
+                                <th>Процесс</th>
+                                <th>PID</th>
+                                <th>Использование процессора</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4" style="text-align: center;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        const memCtx = document.getElementById('memoryChart').getContext('2d');
+        const netCtx = document.getElementById('networkChart').getContext('2d');
+        const loadCtx = document.getElementById('loadChart').getContext('2d');
+        
+        const accentColor = '#4e73df';
+        const accentLight = 'rgba(78, 115, 223, 0.1)';
+        const gridColor = 'rgba(0, 0, 0, 0.05)';
+        
+        const chartOptions = {
+            maintainAspectRatio: false,
+            animation: false,
+            responsive: true,
+            scales: {
+                x: {
+                    display: false,
+                    grid: { display: false }
+                },
+                y: {
+                    min: 0,
+                    grid: { 
+                        color: gridColor,
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        font: { size: 9 },
+                        maxTicksLimit: 6
+                    }
+                }
+            },
+            elements: {
+                point: { radius: 0 },
+                line: { tension: 0.4 }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        };
+        
+        const cpuChart = new Chart(cpuCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Использование процессора',
+                    data: [],
+                    borderColor: accentColor,
+                    backgroundColor: accentLight,
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } }
+            }
+        });
+        
+        const memChart = new Chart(memCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Использование памяти (RAM)',
+                    data: [],
+                    borderColor: '#1cc88a',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, max: 100 } }
+            }
+        });
+        
+        const netChart = new Chart(netCtx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Загрузка',
+                        data: [],
+                        borderColor: accentColor,
+                        backgroundColor: 'transparent',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Отправка',
+                        data: [],
+                        borderColor: '#e74a3b',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: chartOptions
+        });
+        
+        const loadChart = new Chart(loadCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Используется', 'Свободно'],
+                datasets: [{
+                    data: [0, 100],
+                    backgroundColor: [accentColor, gridColor],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+        
+        const ws = new WebSocket(`ws://${window.location.hostname}:${window.location.port}`);
+        
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            if (data.type === 'init') {
+                initCharts(data.history);
+            } 
+            else if (data.type === 'update') {
+                updateMetrics(data.stats);
+                updateCharts(data.stats, data.history);
+                updateProcesses(data.stats.processes);
+            }
+        };
+        
+        function initCharts(history) {
+            const labels = Array(history.cpu.length).fill('');
+            
+            cpuChart.data.labels = labels;
+            cpuChart.data.datasets[0].data = history.cpu;
+            
+            memChart.data.labels = labels;
+            memChart.data.datasets[0].data = history.memory;
+            
+            netChart.data.labels = labels;
+            netChart.data.datasets[0].data = history.network.rx.map(b => b / 1024);
+            netChart.data.datasets[1].data = history.network.tx.map(b => b / 1024);
+            
+            cpuChart.update();
+            memChart.update();
+            netChart.update();
+        }
+        
+        function updateMetrics(stats) {
+            document.getElementById('cpuValue').textContent = `${stats.cpu}%`;
+            document.getElementById('memoryValue').textContent = `${stats.memory.usage}%`;
+            document.getElementById('memoryLabel').textContent = 
+                `${stats.memory.used} MB / ${stats.memory.total} MB`;
+            document.getElementById('downloadValue').textContent = 
+                `${Math.round(stats.network.rx / 1024)} KB/s`;
+            document.getElementById('uploadValue').textContent = 
+                `${Math.round(stats.network.tx / 1024)} KB/s`;
+            
+            loadChart.data.datasets[0].data = [
+                stats.memory.usage, 
+                100 - stats.memory.usage
+            ];
+            loadChart.update();
+        }
+        
+        function updateCharts(stats, history) {
+            cpuChart.data.datasets[0].data = history.cpu;
+            cpuChart.update('none');
+            
+            memChart.data.datasets[0].data = history.memory;
+            memChart.update('none');
+            
+            netChart.data.datasets[0].data = history.network.rx.map(b => b / 1024);
+            netChart.data.datasets[1].data = history.network.tx.map(b => b / 1024);
+            netChart.update('none');
+        }
+        
+        function updateProcesses(processes) {
+            const tbody = document.querySelector('#processTable tbody');
+            let html = '';
+            
+            processes.forEach(p => {
+                html += `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.pid}</td>
+                    <td>${p.cpu.toFixed(1)}%</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width: ${Math.min(p.cpu, 100)}%"></div>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        window.addEventListener('resize', function() {
+            cpuChart.resize();
+            memChart.resize();
+            netChart.resize();
+            loadChart.resize();
+        });
+    </script>
+</body>
+</html>

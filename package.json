@@ -1,0 +1,26 @@
+{
+  "name": "server-stat",
+  "version": "1.0.0",
+  "description": "Статистика работы сервера",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaurcev/node-server-stat.git"
+  },
+  "keywords": [],
+  "author": "Alexsandr Kaurcev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kaurcev/node-server-stat/issues"
+  },
+  "homepage": "https://github.com/kaurcev/node-server-stat#readme",
+  "dependencies": {
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0",
+    "systeminformation": "^5.27.7",
+    "ws": "^8.18.3"
+  }
+}
